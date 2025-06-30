@@ -21,13 +21,20 @@ async def test_bot(b, update, context):
         return await b.send_message(f"You [{who}] said '{what}'",
                                     update, context)
 
-    buttons = ["Самообследование", "Запись на приём"]
+    buttons = ["Self-diagnostic", "Book the time"]
 
     async def send_default_menu(update, context):
-        return await b.send_menu("Выберите меню",
+        return await b.send_menu("Choose your destiny",
                                  buttons, update, context)
+
+    async def you_pressed(update, context):
+        who, what = b.get_who_what(update, context)
+        return await b.send_message(f"You [{who}] pressed '{what}'",
+                                    update, context)
 
     b.add(trigger.ON_MESSAGE, you_said)
     b.add(trigger.ON_MESSAGE, send_default_menu)
+    b.register_menu_buttons(buttons)
+    b.add(trigger.ON_MENU, you_pressed)
     return await b.act(update, context)
 

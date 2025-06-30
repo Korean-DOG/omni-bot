@@ -23,7 +23,6 @@ class VK(BaseProvider):
         self.actions = defaultdict(
             list)  # key = trigger or tuple(trigger, filter_func=None)
 
-
     async def send(self, who, type, text, buttons=None):
         print(who, type, text)
         if type == send.MESSAGE:
@@ -62,9 +61,16 @@ class VK(BaseProvider):
 
     SELF_REPLY_MESSAGE = 'message_reply'
 
-    @staticmethod
-    def get_reply_type(update, context):
-        return json.loads(update['body'])['type']
+    def get_reply_type(self, update, context):
+        reply_vk_type = json.loads(update['body'])['type']
+        if reply_vk_type == self.SELF_REPLY_MESSAGE:
+            return None
+
+        reply_text = self.get_who_what(update, context)[1]
+        if reply_text in self.menu_buttons:
+            return trigger.ON_MENU
+
+        return self.VK_TYPE_TO_TRIGGER[reply_vk_type]
 
     @staticmethod
     def get_who_what(update, context):
@@ -91,18 +97,16 @@ class VK(BaseProvider):
         self.actions[(on, trigger_filter)].append(action)
 
     async def act(self, update, context):
-        reply_vk_type = self.get_reply_type(update, context)
+        reply_type = self.get_reply_type(update, context)
 
-        if reply_vk_type == self.SELF_REPLY_MESSAGE:
-            return self.response([])
+        if not reply_type:
+            return self.response([f"We don't reply on'{reply_type}'"])
 
-        reply_type = self.VK_TYPE_TO_TRIGGER[reply_vk_type]
-
+        reply_text = self.get_who_what(update, context)[1]
         ret = []
         try:
             acted = False
             for (on, trigger_filter), actions in self.actions.items():
-                reply_text = self.get_who_what(update, context)[1]
                 if (on == reply_type and (trigger_filter is None or
                         trigger_filter(reply_type, reply_text))):
                     for action in actions:

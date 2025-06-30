@@ -8,6 +8,10 @@ class BaseProvider:
         print(f"Initialized '{self.__module__}' Provider")
         self.error_action = None
         self.default_action = None
+        self.menu_buttons = set()  # strings
+
+    def register_menu_buttons(self, buttons):
+        self.menu_buttons.update(buttons)
 
     def _error(self, update, context):
         self.logger.error("Error triggered. Exception: {}".

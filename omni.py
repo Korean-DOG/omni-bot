@@ -1,13 +1,12 @@
 import logging
 import send
+import trigger
 
 
 class OMNI:
     logger = logging.getLogger('omni.%s' % __name__)
     def __init__(self, provider):
         self.provider = provider
-        self.default_action = None
-        self.error_action = None
         self.logger.info("Bot created")
 
     def set_default_action(self, func):
@@ -28,9 +27,16 @@ class OMNI:
         return await self.provider.send(destination, send.MENU,
                                         message, buttons)
 
+    def register_menu_buttons(self, buttons):
+        self.provider.register_menu_buttons(buttons)
+
     def add(self, on, action, trigger_filter=None):
+        if on == trigger.ON_MENU and not self.provider.menu_buttons:
+            raise Exception(f"Trigger '{on}' is not allowed without "
+                            f"registration of menu buttons. Call "
+                            f"register_menu_buttons before")
         self.provider.add(on, action, trigger_filter)
-        self.logger.info(f"Trigger '{on}(filter={trigger_filter})' "
+        print(f"Trigger '{on}(filter={trigger_filter})' "
                          f"added with action '{action}'")
 
     def act(self, update, context):

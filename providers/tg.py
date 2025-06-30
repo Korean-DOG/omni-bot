@@ -2,11 +2,11 @@ import os
 import json
 from collections import defaultdict
 
-from telegram.ext import ApplicationBuilder, MessageHandler, filters
-from telegram import Message, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ApplicationBuilder, MessageHandler, filters, \
+    CallbackQueryHandler
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram import Update
 from telegram.constants import ParseMode
-from telegram.ext import ContextTypes
 
 import send
 import trigger
@@ -63,8 +63,11 @@ class TG(BaseProvider):
     @staticmethod
     def get_who_what(update, context):
         username = (update.message or update.effective_message).chat.username
-        message = (update.message or update.effective_message).text
 
+        if update.callback_query:
+            return username, update.callback_query.data
+
+        message = (update.message or update.effective_message).text
         return username, message
 
     def get_destination(self, update, context):
@@ -72,8 +75,15 @@ class TG(BaseProvider):
                 send.MENU: (update.message or update.effective_message)}
 
     async def act(self, update, context):
-        self._really_add()
-        await self.app.initialize()
+        print(f"update {update}\ncontext {context}")
+
+        if not self.app._initialized:
+            self._really_add()
+            await self.app.initialize()
+        else:
+            self.app.shutdown()
+            self._really_add()
+            await self.app.initialize()
 
         try:
             ret = await self.app.process_update(Update.de_json(json.loads(update['body']),
@@ -87,15 +97,39 @@ class TG(BaseProvider):
         print(f"Results: '{actions_results}'")
         return {'statusCode': 200}
 
-    TRIGGER_TO_TG = {trigger.ON_MESSAGE: filters.CHAT}
-
     def _really_add(self):
-        for t, actions in self.actions_to_handlers.items():
-            async def single_action(update, context):
-                return [await a(update, context) for a in actions[:]]
+        print(f"really add: %s" % ({k:[i.__qualname__.split('.')[-1] for i in v]
+                                    for k, v in
+                                    self.actions_to_handlers.items()},))
 
-            self.app.add_handler(
-            MessageHandler(self.TRIGGER_TO_TG[t], single_action))
+        handlers_to_add = {}
+        for t, actions in self.actions_to_handlers.items():
+            if t == trigger.ON_MESSAGE:
+                message_actions = actions[:]
+                async def message_func(update, context):
+                    print(f"Trigger '{t}' leads to "
+                          f"{[a.__qualname__.split('.')[-1] for a in message_actions]}")
+                    return [await a(update, context) for a in message_actions]
+
+                handlers_to_add[-1] = [MessageHandler(filters.CHAT,
+                                                      message_func)]
+            elif t == trigger.ON_MENU:
+                menu_actions = actions[:]
+                async def menu_func(update, context):
+                    print(f"Trigger '{t}' leads to "
+                          f"{[a.__qualname__.split('.')[-1] for a in menu_actions]}")
+                    return [await a(update, context) for a in menu_actions]
+
+                def filter_menu(data):
+                    print(f"We got '{data}' from {self.menu_buttons}")
+                    return data in self.menu_buttons
+
+                handlers_to_add[1] = [CallbackQueryHandler(menu_func,
+                                                           pattern=filter_menu)]
+            else:
+                raise Exception(f"Trigger is not expected: '{t}'")
+
+        self.app.add_handlers(handlers_to_add)
 
     def add(self, on, action, trigger_filter=None):
         self.actions_to_handlers[on].append(action)
