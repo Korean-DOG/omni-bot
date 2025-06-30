@@ -21,17 +21,19 @@ class VK(BaseProvider):
         super().__init__()
 
         self.actions = defaultdict(
-            list)  # key = tuple(trigger, filter_func=None)
+            list)  # key = trigger or tuple(trigger, filter_func=None)
 
 
-    async def send(self, who, type, text):
+    async def send(self, who, type, text, buttons=None):
         print(who, type, text)
         if type == send.MESSAGE:
             return self.message(who, text)
+        elif type == send.MENU:
+            return self.message(who, text, buttons)
         else:
             raise Exception(f"Unknown type {type}")
 
-    def message(self, destination, text):
+    def message(self, destination, text, buttons=None):
         params = {
             'user_id': destination,
             'message': text,
@@ -41,7 +43,19 @@ class VK(BaseProvider):
             'dont_parse_links': 1,
         }
 
+        if buttons:
+            params['keyboard'] = json.dumps(self.get_keyboard(buttons))
+
+        print(f"send message: {params}")
+
         return requests.post(self.VK_API_URL, params=params)
+
+    def _get_button(self, text):
+        return {"action": {"type": "text", "label": text}, "color": "primary"}
+
+    def get_keyboard(self, buttons):
+        return {"one_time": False, "inline": False,
+                "buttons": [[self._get_button(text) for text in buttons]]}
 
     VK_TYPE_TO_TRIGGER = {'confirmation': trigger.TRIGGER_ON_CONFIRMATION,
                           'message_new': trigger.ON_MESSAGE}

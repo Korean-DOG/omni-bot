@@ -1,4 +1,3 @@
-import send
 import trigger
 from omni import OMNI
 
@@ -15,14 +14,20 @@ async def run_tg_bot(update, context):
     b = OMNI(tg)
     return await test_bot(b, update, context)
 
+
 async def test_bot(b, update, context):
     async def you_said(update, context):
-        who, what = b.provider.get_who_what(update, context)
-        destination = b.provider.get_destination(update, context)
-        return await b.provider.send(destination,
-                                     send.MESSAGE,
-                                     f"You [{who}] said '{what}'")
+        who, what = b.get_who_what(update, context)
+        return await b.send_message(f"You [{who}] said '{what}'",
+                                    update, context)
+
+    buttons = ["Самообследование", "Запись на приём"]
+
+    async def send_default_menu(update, context):
+        return await b.send_menu("Выберите меню",
+                                 buttons, update, context)
 
     b.add(trigger.ON_MESSAGE, you_said)
+    b.add(trigger.ON_MESSAGE, send_default_menu)
     return await b.act(update, context)
 

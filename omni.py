@@ -1,6 +1,5 @@
 import logging
-import traceback
-from collections import defaultdict
+import send
 
 
 class OMNI:
@@ -16,6 +15,18 @@ class OMNI:
 
     def set_error_action(self, func):
         self.provider.set_error_action(func)
+
+    def get_who_what(self, update, context):
+        return self.provider.get_who_what(update, context)
+
+    async def send_message(self, message, update, context):
+        destination = self.provider.get_destination(update, context)
+        return await self.provider.send(destination, send.MESSAGE, message)
+
+    async def send_menu(self, message, buttons, update, context):
+        destination = self.provider.get_destination(update, context)
+        return await self.provider.send(destination, send.MENU,
+                                        message, buttons)
 
     def add(self, on, action, trigger_filter=None):
         self.provider.add(on, action, trigger_filter)

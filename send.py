@@ -1,1 +1,2 @@
 MESSAGE = 'message'
+MENU = 'menu'
