@@ -1,3 +1,5 @@
+"""Constants for trigger types."""
+
 TYPE_ERROR = 'error'
 
 ON_MESSAGE = 'message'

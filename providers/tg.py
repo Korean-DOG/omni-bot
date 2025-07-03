@@ -1,9 +1,16 @@
+"""Provides a concrete implementation of the BaseProvider for Telegram chat bots. 
+Handles platform-specific interactions including:
+- Bot initialization
+- Webhook configuration
+- Message routing via Telegram's API
+"""
+
 import os
 import json
 from collections import defaultdict
 
 from telegram.ext import ApplicationBuilder, MessageHandler, filters, \
-    CallbackQueryHandler
+    CallbackQueryHandler, ContextTypes
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram import Update
 from telegram.constants import ParseMode
@@ -15,15 +22,38 @@ from providers.base import BaseProvider
 
 
 class TG(BaseProvider):
+    """Provider for Telegram chat bot.
+
+    Attributes:
+        TYPE (str): Type of bot.
+        TOKEN (str): The group's access key.
+        app (telegram.ext.Application): Application.
+        actions_to_handlers (dict): Actions for each trigger.
+    """
     TYPE = "TG"
     TOKEN = os.environ["TOKEN"]  # Ключ доступа группы
 
     def __init__(self):
+        """Class constructor"""
         super().__init__()
         self.app = ApplicationBuilder().token(os.environ["TOKEN"]).build()
         self.actions_to_handlers = defaultdict(list)
 
     async def send(self, who, type, text, buttons=None):
+        """Send different types of messages.
+
+        Args:
+            who (dict): Dictionary with message destinations.
+            type (str): Type of message.
+            text (str): Message text.
+            buttons (set(str), optional): Menu buttons. Defaults to None.
+
+        Raises:
+            Exception: If type is not in send.py.
+
+        Returns:
+            telegram.Message: Message, chat and user info.
+        """
         print(who, type, text)
         if type == send.MESSAGE:
             return await self.message(who[send.MESSAGE], text)
@@ -33,6 +63,15 @@ class TG(BaseProvider):
             raise Exception(f"Unknown type {type}")
 
     async def message(self, destination, text):
+        """Send text message.
+
+        Args:
+            destination (int): Chat ID.
+            text (str): Message.
+
+        Returns:
+            telegram.Message: Message, chat and user info.
+        """
         text = text.encode('utf16',
                            errors='surrogatepass').decode('utf16')
 
@@ -44,12 +83,30 @@ class TG(BaseProvider):
             parse_mode=ParseMode.HTML)
 
     async def menu(self, who, text, buttons):
+        """Send message with menu buttons.
+
+        Args:
+            who (telegram.Message): The message included in the update.
+            text (str): Message to sent.
+            buttons (set(str)): Menu buttons.
+
+        Returns:
+            telegram.Message: Message, chat and user info.
+        """
         print(f"send menu: {who, text, buttons}")
         return await who.reply_text(text,
                                     reply_markup=self.get_keyboard(buttons),
                                     parse_mode=ParseMode.MARKDOWN)
 
     def get_keyboard(self, buttons):
+        """Create button markup.
+
+        Args:
+            buttons (set(str)): Button names.
+
+        Returns:
+            telegram.InlineKeyboardMarkup: Button markup.
+        """
         keyboard = []
 
         for start_index in range(0, len(buttons), 2):
@@ -62,6 +119,15 @@ class TG(BaseProvider):
 
     @staticmethod
     def get_who_what(update, context):
+        """Get username and message text.
+
+        Args:
+            update (telegram.Update): Request info.
+            context (telegram.ext.ContextTypes.DEFAULT_TYPE): Chat context.
+
+        Returns:
+            (str, str): Username and message text.
+        """
         username = (update.message or update.effective_message).chat.username
 
         if update.callback_query:
@@ -71,10 +137,28 @@ class TG(BaseProvider):
         return username, message
 
     def get_destination(self, update, context):
+        """Get destinations for each message type.
+
+        Args:
+            update (telegram.Update): Request info.
+            context (telegram.ext.ContextTypes.DEFAULT_TYPE): Chat context.
+
+        Returns:
+            dict: Dictionary where keys - message types, values - destinations.
+        """
         return {send.MESSAGE: update.effective_chat.id,
                 send.MENU: (update.message or update.effective_message)}
 
     async def act(self, update, context):
+        """Performs actions added by the add method.
+
+        Args:
+            update (telegram.Update): Request info.
+            context (telegram.ext.ContextTypes.DEFAULT_TYPE): Chat context.
+
+        Returns:
+            dict: Status code.
+        """
         print(f"update {update}\ncontext {context}")
 
         if not self.app._initialized:
@@ -94,8 +178,17 @@ class TG(BaseProvider):
             return self.response(e)
 
     def response(self, actions_results):
+        """Finalizes request processing by logging results and returning an HTTP status.
+
+        Args:
+            actions_results (Any): Results of response.
+
+        Returns:
+            dict: Status code of response.
+        """
         print(f"Results: '{actions_results}'")
         return {'statusCode': 200}
+    
 
     def _really_add(self):
         print(f"really add: %s" % ({k:[i.__qualname__.split('.')[-1] for i in v]
@@ -132,4 +225,11 @@ class TG(BaseProvider):
         self.app.add_handlers(handlers_to_add)
 
     def add(self, on, action, trigger_filter=None):
+        """Add action on specific trigger.
+
+        Args:
+            on (str): Trigger type.
+            action (Callable): Action.
+            trigger_filter (Callable): Function-filter for trigger. Defaults to None. Not used.
+        """
         self.actions_to_handlers[on].append(action)

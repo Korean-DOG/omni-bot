@@ -1,3 +1,10 @@
+"""Provides a concrete implementation of the BaseProvider for VK chat bots. 
+Handles platform-specific interactions including:
+- Event processing from VK Callback API
+- Message delivery via VK methods
+- Trigger mapping for VK event types
+"""
+
 import os
 import json
 from collections import defaultdict
@@ -11,6 +18,16 @@ from providers.base import BaseProvider
 
 
 class VK(BaseProvider):
+    """Provider for VK chat bot.
+
+    Attributes:
+        TYPE (str): Type of bot.
+        ACCESS_TOKEN (str): The group's access key.
+        VK_API_URL (str): Api url.
+        API_VERSION (str): Api version.
+        VK_TYPE_TO_TRIGGER (dict): Platform-specific types of triggers.
+        SELF_REPLY_MESSAGE (str): The template message sent by the bot when responding to its own actions.
+    """
     TYPE = "vk"
     ACCESS_TOKEN = os.getenv('ACCESS_TOKEN')  # Ключ доступа группы
     VK_API_URL = "https://api.vk.com/method/messages.send"
@@ -18,12 +35,27 @@ class VK(BaseProvider):
     #CONFIRMATION_TOKEN = os.getenv('CONFIRMATION_TOKEN')
 
     def __init__(self):
+        """Class constructor."""
         super().__init__()
 
         self.actions = defaultdict(
             list)  # key = trigger or tuple(trigger, filter_func=None)
 
     async def send(self, who, type, text, buttons=None):
+        """Send different types of messages.
+
+        Args:
+            who (dict): Dictionary with message destinations.
+            type (str): Type of message.
+            text (str): Message text.
+            buttons (set, optional): Menu buttons. Defaults to None.
+
+        Raises:
+            Exception: If type is not in send.py.
+
+        Returns:
+            requests.Response: Response of chat bot server.
+        """
         print(who, type, text)
         if type == send.MESSAGE:
             return self.message(who, text)
@@ -33,6 +65,16 @@ class VK(BaseProvider):
             raise Exception(f"Unknown type {type}")
 
     def message(self, destination, text, buttons=None):
+        """Send text message with optional menu buttons.
+
+        Args:
+            destination (telegram.Message): The message included in the update.
+            text (str): Message to sent.
+            buttons (set(str)): Menu buttons. Defaults to None.
+
+        Returns:
+            requests.Response: Response of chat bot server.
+        """
         params = {
             'user_id': destination,
             'message': text,
@@ -53,6 +95,14 @@ class VK(BaseProvider):
         return {"action": {"type": "text", "label": text}, "color": "primary"}
 
     def get_keyboard(self, buttons):
+        """Generates a VK API-compatible keyboard layout for interactive message replies. 
+
+        Args:
+            buttons (set(str)): Menu buttons.
+
+        Returns:
+            dict: Dictionary with menu config and buttons.
+        """
         return {"one_time": False, "inline": False,
                 "buttons": [[self._get_button(text) for text in buttons]]}
 
@@ -62,6 +112,15 @@ class VK(BaseProvider):
     SELF_REPLY_MESSAGE = 'message_reply'
 
     def get_reply_type(self, update, context):
+        """Defines the type of trigger.
+
+        Args:
+            update (dict): Request info
+            context: Chat context.
+
+        Returns:
+            (str | None): Type of trigger or None when bot replies to itself.
+        """
         reply_vk_type = json.loads(update['body'])['type']
         if reply_vk_type == self.SELF_REPLY_MESSAGE:
             return None
@@ -74,6 +133,15 @@ class VK(BaseProvider):
 
     @staticmethod
     def get_who_what(update, context):
+        """Get user ID and message text.
+
+        Args:
+            update (dict): Request info.
+            context: Chat context.
+
+        Returns:
+            (int, str): User ID and message text.
+        """
         data = json.loads(update['body'])
 
         print(data)
@@ -87,16 +155,49 @@ class VK(BaseProvider):
         return channel, reply_text
 
     def get_destination(self, update, context):
+        """Get user ID.
+
+        Args:
+            update (dict): Request info.
+            context: Chat context.
+
+        Returns:
+            int: User ID.
+        """
         return self.get_who_what(update, context)[0]
 
     def response(self, actions_results):
+        """Finalizes request processing by logging results and returning an HTTP status.
+
+        Args:
+            actions_results (Any): Results of response.
+
+        Returns:
+            dict: Status code of response.
+        """
         print(f"Results: '{actions_results}'")
         return {'statusCode': 200}
 
     def add(self, on, action, trigger_filter=None):
+        """Add action on specific trigger.
+
+        Args:
+            on (str): Trigger type.
+            action (Callable): Action.
+            trigger_filter (Callable): Function-filter for trigger. Defaults to None.
+        """
         self.actions[(on, trigger_filter)].append(action)
 
     async def act(self, update, context):
+        """Performs actions added by the add method.
+
+        Args:
+            update (dict): Request info.
+            context: Chat context.
+
+        Returns:
+            dict: Status code.
+        """
         reply_type = self.get_reply_type(update, context)
 
         if not reply_type:
