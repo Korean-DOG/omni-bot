@@ -1,7 +1,6 @@
 """Provides a unified interface for text-based bot operations across multiple messaging platforms by abstracting provider-specific implementations."""
 
-import send
-import trigger
+from omni import send, trigger
 
 
 class OMNI:
