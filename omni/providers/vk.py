@@ -11,10 +11,9 @@ from collections import defaultdict
 
 import requests
 
-import send
-import trigger
+from omni import send, trigger
 
-from providers.base import BaseProvider
+from omni.providers.base import BaseProvider
 
 
 class VK(BaseProvider):

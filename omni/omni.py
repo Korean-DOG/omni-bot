@@ -1,6 +1,5 @@
 """Provides a unified interface for text-based bot operations across multiple messaging platforms by abstracting provider-specific implementations."""
 
-import logging
 import send
 import trigger
 
@@ -9,10 +8,8 @@ class OMNI:
     """Text bot with different providers.
    
     Attributes:
-        logger (Logger): Logger object.
         provider (BaseProvider): Provider for bot actions.
     """
-    logger = logging.getLogger('omni.%s' % __name__)
     def __init__(self, provider):
         """Class constructor.
         
@@ -20,7 +17,6 @@ class OMNI:
             provider (BaseProvider): Provider for bot actions.
         """
         self.provider = provider
-        self.logger.info("Bot created")
 
     def set_default_action(self, func):
         """Setter for default provider action.

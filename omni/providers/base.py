@@ -6,7 +6,6 @@ It establishes the core interface and shared functionality for:
 - Menu system integration
 """
 
-import logging
 import traceback
 
 
@@ -19,7 +18,6 @@ class BaseProvider:
         default_action (Callable): Default bot action.
         menu_buttons (Set[str]): Inline menu buttons.
     """
-    logger = logging.getLogger('omni.%s' % __name__)
     def __init__(self):
         """Class constructor."""
         print(f"Initialized '{self.__module__}' Provider")
@@ -36,14 +34,14 @@ class BaseProvider:
         self.menu_buttons.update(buttons)
 
     def _error(self, update, context):
-        self.logger.error("Error triggered. Exception: {}".
+        print("Error triggered. Exception: {}".
                               format(traceback.format_exc()))
 
         if self.error_action is not None:
             self.error_action(update, context)
 
     def _default(self, update, context):
-        self.logger.warning("Default action triggered.")
+        print("Default action triggered.")
         if self.default_action is not None:
             self.default_action(update, context)
 

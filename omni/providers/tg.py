@@ -10,15 +10,14 @@ import json
 from collections import defaultdict
 
 from telegram.ext import ApplicationBuilder, MessageHandler, filters, \
-    CallbackQueryHandler, ContextTypes
+    CallbackQueryHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram import Update
 from telegram.constants import ParseMode
 
-import send
-import trigger
+from omni import send, trigger
 
-from providers.base import BaseProvider
+from omni.providers.base import BaseProvider
 
 
 class TG(BaseProvider):

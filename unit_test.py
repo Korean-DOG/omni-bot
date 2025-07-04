@@ -1,15 +1,14 @@
-import trigger
-from omni import OMNI
+from omni.omni import OMNI, trigger
 
 
 async def run_vk_bot(update, context):
-    from providers.vk import VK
+    from omni.providers.vk import VK
     vk = VK()
     b = OMNI(vk)
     return await test_bot(b, update, context)
 
 async def run_tg_bot(update, context):
-    from providers.tg import TG
+    from omni.providers.tg import TG
     tg = TG()
     b = OMNI(tg)
     return await test_bot(b, update, context)
