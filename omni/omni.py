@@ -99,8 +99,9 @@ class OMNI:
                             f"registration of menu buttons. Call "
                             f"register_menu_buttons before")
         self.provider.add(on, action, trigger_filter)
+        action_name = action.__qualname__.split('.')[-1]
         print(f"Trigger '{on}(filter={trigger_filter})' "
-                         f"added with action '{action}'")
+                         f"added with action '{action_name}'")
 
     def act(self, update, context):
         """Performs actions added by the add method.

@@ -200,7 +200,7 @@ class VK(BaseProvider):
         reply_type = self.get_reply_type(update, context)
 
         if not reply_type:
-            return self.response([f"We don't reply on'{reply_type}'"])
+            return self.response([f"We don't reply on such messages '{reply_type}'. skip work update'{update}'"])
 
         reply_text = self.get_who_what(update, context)[1]
         ret = []
