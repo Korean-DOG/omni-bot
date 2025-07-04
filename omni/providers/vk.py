@@ -82,8 +82,8 @@ class VK(BaseProvider):
             'v': self.API_VERSION,
             'dont_parse_links': 1,
         }
-        kb = self.get_keyboard(buttons)
         if buttons:
+            kb = self.get_keyboard(buttons)
             params['keyboard'] = kb
 
         print(f"send message: {params}")
