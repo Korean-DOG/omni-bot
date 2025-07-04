@@ -18,20 +18,24 @@ class BaseProvider:
         default_action (Callable): Default bot action.
         menu_buttons (Set[str]): Inline menu buttons.
     """
+    DEFAULT_KEYBOARD_LINES = 3
+
     def __init__(self):
         """Class constructor."""
         print(f"Initialized '{self.__module__}' Provider")
         self.error_action = None
         self.default_action = None
         self.menu_buttons = set()  # strings
+        self.keyboard_lines = None
 
-    def register_menu_buttons(self, buttons):
+    def register_menu_buttons(self, buttons, lines=None):
         """Method for registration inline buttons for menu.
 
         Args:
             buttons (set(str)): menu buttons.
         """
         self.menu_buttons.update(buttons)
+        self.keyboard_lines = lines or self.DEFAULT_KEYBOARD_LINES
 
     def _error(self, update, context):
         print("Error triggered. Exception: {}".

@@ -81,7 +81,7 @@ class OMNI:
         Args:
             buttons (set): Menu buttons.
         """
-        self.provider.register_menu_buttons(buttons)
+        self.provider.register_menu_buttons(buttons, lines=None)
 
     def add(self, on, action, trigger_filter=None):
         """Add action on specific trigger with optional filter.

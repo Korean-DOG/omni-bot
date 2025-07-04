@@ -33,7 +33,7 @@ async def test_bot(b, update, context):
 
     b.add(trigger.ON_MESSAGE, you_said)
     b.add(trigger.ON_MESSAGE, send_default_menu)
-    b.register_menu_buttons(buttons)
+    b.register_menu_buttons(buttons, 2)
     b.add(trigger.ON_MENU, you_pressed)
     return await b.act(update, context)
 

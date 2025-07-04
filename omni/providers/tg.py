@@ -108,9 +108,9 @@ class TG(BaseProvider):
         """
         keyboard = []
 
-        for start_index in range(0, len(buttons), 2):
+        for start_index in range(0, len(buttons), self.keyboard_lines - 1):
             keyboard_line = []
-            for key in buttons[start_index:start_index + 2]:
+            for key in buttons[start_index:start_index + self.keyboard_lines-1]:
                 button = InlineKeyboardButton(key, callback_data=key)
                 keyboard_line.append(button)
             keyboard.append(keyboard_line)

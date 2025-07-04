@@ -102,8 +102,11 @@ class VK(BaseProvider):
         Returns:
             dict: Dictionary with menu config and buttons.
         """
-        return {"one_time": False, "inline": False,
-                "buttons": [[self._get_button(text) for text in buttons]]}
+        lines = []
+        for start_index in range(0, len(buttons), self.keyboard_lines - 1):
+            lines.append(buttons[start_index:start_index + self.keyboard_lines - 1])
+
+        return {"one_time": False, "inline": False, "buttons": lines}
 
     VK_TYPE_TO_TRIGGER = {'confirmation': trigger.TRIGGER_ON_CONFIRMATION,
                           'message_new': trigger.ON_MESSAGE}
@@ -200,7 +203,9 @@ class VK(BaseProvider):
         reply_type = self.get_reply_type(update, context)
 
         if not reply_type:
-            return self.response([f"We don't reply on such messages '{reply_type}'. skip work update'{update}'"])
+            return self.response([f"We don't reply on such messages "
+                                  f"'{reply_type}'. "
+                                  f"skip work update'{update}'"])
 
         reply_text = self.get_who_what(update, context)[1]
         ret = []
