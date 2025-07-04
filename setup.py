@@ -11,6 +11,6 @@ setup(
     long_description_content_type='text/markdown',
     url="https://github.com/Korean-DOG/omni-bot",
     license="Apache-2.0 license",
-    packages=find_packages(exclude=["unit_test.py"]),
+    packages=find_packages(exclude=[]),
     install_requires=open("requirements.txt").read().split("\n")
 )
