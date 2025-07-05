@@ -104,6 +104,9 @@ class VK(BaseProvider):
         Returns:
             dict: Dictionary with menu config and buttons.
         """
+        if not buttons or all(line for line in buttons) == False:
+            return {"one_time": False, "inline": False, "buttons": []}
+
         lines = []
         for start_index in range(0, len(buttons), self.keyboard_lines - 1):
             lines.append(list(buttons[start_index:
