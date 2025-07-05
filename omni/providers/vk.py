@@ -85,11 +85,10 @@ class VK(BaseProvider):
         if buttons:
             kb = self.get_keyboard(buttons)
             params['keyboard'] = kb
-
-        print(f"send message: {params}")
-
-        if buttons:
+            print(f"send message: {params}")
             params['keyboard'] = json.dumps(kb)
+        else:
+            print(f"send message: {params}")
 
         return requests.post(self.VK_API_URL, params=params)
 
@@ -107,7 +106,7 @@ class VK(BaseProvider):
         """
         lines = []
         for start_index in range(0, len(buttons), self.keyboard_lines - 1):
-            lines.append([buttons[start_index:start_index + self.keyboard_lines - 1]])
+            lines.append(buttons[start_index:start_index + self.keyboard_lines - 1])
 
         return {"one_time": False, "inline": False, "buttons": lines}
 
