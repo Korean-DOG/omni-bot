@@ -107,15 +107,12 @@ class VK(BaseProvider):
         Returns:
             dict: Dictionary with menu config and buttons.
         """
-        if not buttons or all(line for line in buttons) == False:
-            return {"one_time": False, "inline": True, "buttons": []}
-
         lines = []
         for start_index in range(0, len(buttons), self.keyboard_lines - 1):
             lines.append(list(buttons[start_index:
                                       start_index + self.keyboard_lines - 1]))
 
-        return {"one_time": False, "inline": True, "buttons": lines}
+        return {"one_time": False, "inline": True, "buttons": []}
 
     VK_TYPE_TO_TRIGGER = {'confirmation': trigger.TRIGGER_ON_CONFIRMATION,
                           'message_new': trigger.ON_MESSAGE}
