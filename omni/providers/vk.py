@@ -112,7 +112,7 @@ class VK(BaseProvider):
             lines.append(list(buttons[start_index:
                                       start_index + self.keyboard_lines - 1]))
 
-        return {"one_time": False, "inline": False, "buttons": []}
+        return {"one_time": False, "inline": True, "buttons": lines}
 
     VK_TYPE_TO_TRIGGER = {'confirmation': trigger.TRIGGER_ON_CONFIRMATION,
                           'message_new': trigger.ON_MESSAGE}
