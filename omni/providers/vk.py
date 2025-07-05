@@ -74,6 +74,9 @@ class VK(BaseProvider):
         Returns:
             requests.Response: Response of chat bot server.
         """
+        if buttons:
+            self.message(destination=destination, text=text, buttons=None)
+
         params = {
             'user_id': destination,
             'message': text,
