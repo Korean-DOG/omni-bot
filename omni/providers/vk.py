@@ -106,7 +106,8 @@ class VK(BaseProvider):
         """
         lines = []
         for start_index in range(0, len(buttons), self.keyboard_lines - 1):
-            lines.append(buttons[start_index:start_index + self.keyboard_lines - 1])
+            lines.append(list(buttons[start_index:
+                                      start_index + self.keyboard_lines - 1]))
 
         return {"one_time": False, "inline": False, "buttons": lines}
 
